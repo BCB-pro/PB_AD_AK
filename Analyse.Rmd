@@ -1,0 +1,716 @@
+---
+title: "Analyse"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+# Librairies
+library(tidyverse)
+library(openxlsx)
+library(texreg)
+library(lmerTest)
+library(lme4)
+library(kableExtra)
+library(ggpubr)
+library(rstatix)
+library(car)
+library(plotly)
+library(sjPlot)
+library(htmlwidgets)
+# Importation des datas
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size3.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+# Dynamic Boxplot {.tabset}
+## Size 3 {.tabset}
+### All CATHB 
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité All CATHB
+# On fait la moyenne des airs des Cathepsine pour une chaque cellule
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### LF
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité minus LF
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(Somme = sum(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(Somme, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### minus LF
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité minus LF
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "minus LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+
+### excl CATHB
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité excl CATHB
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "excl CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### contour
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité excl CATHB
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "contour")
+data2 <- data2 %>% group_by(brain_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+p <- data2 %>% ggplot(aes(x = disease_grp, y = moyenne, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### nb_poncta_area_um2_weighted
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité All CATHB
+# On fait la moyenne des airs des Cathepsine pour une chaque cellule
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% select(brain_id, image_id, cell_id, nb_poncta_area_um2_weighted)
+data2 <- unique(data2)
+
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(nb_poncta_area_um2_weighted, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+## Size 4 {.tabset}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size4.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+
+### All CATHB 
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité All CATHB
+# On fait la moyenne des airs des Cathepsine pour une chaque cellule
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### LF
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité minus LF
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(Somme = sum(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(Somme, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### minus LF
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité minus LF
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "minus LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+
+### excl CATHB
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité excl CATHB
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "excl CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### contour
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité excl CATHB
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "contour")
+data2 <- data2 %>% group_by(brain_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+p <- data2 %>% ggplot(aes(x = disease_grp, y = moyenne, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+### nb_poncta_area_um2_weighted
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+# Analyse avec la modalité All CATHB
+# On fait la moyenne des airs des Cathepsine pour une chaque cellule
+# Ensuite on fait des airs des cellules pour un même individu
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% select(brain_id, image_id, cell_id, nb_poncta_area_um2_weighted)
+data2 <- unique(data2)
+
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(nb_poncta_area_um2_weighted, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, text = brain_id))+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()
+l <- plotly::ggplotly(p, tooltip="text")
+htmltools::tagList(l)
+```
+
+
+# Control outliers {.tabset}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size3.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% dplyr::select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+## Size 3
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE, fig.align="center"}
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp, BRAINBANK) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+# Représentation graphique
+# Data management
+data2 <- data2 %>% filter(disease_grp %in% c("CTRL"))
+
+# ordre <- data2 %>% arrange(disease_grp)
+# ordre$brain_id <- factor(ordre$brain_id)
+# str(ordre$brain_id)
+# a <- unique(ordre$brain_id)
+# data2$brain_id <- factor(data2$brain_id, levels = a)
+
+
+# Histogramme
+data2 %>% ggplot(aes(x = moyenne, fill = BRAINBANK)) +
+  geom_histogram() +
+  facet_wrap(~ brain_id, ncol = 5) +
+  theme_bw() +
+  scale_fill_manual(values = c("darkblue", "darkred", "darkolivegreen3"))
+
+# Identifier les outliers
+identifiant_extreme <- data.frame(brain_id = character(), image_id = character(), cell_id = character())
+for (i in unique(data2$brain_id)){
+  data3 <- data2 %>% filter(brain_id == i)
+  data4 <- identify_outliers(data3, moyenne)
+  data4 <- data4 %>% filter(is.outlier == T)
+  data4 <- data4 %>% select(brain_id, image_id, cell_id)
+  identifiant_extreme <- rbind(identifiant_extreme, data4)
+}
+
+# Retirer les outliers
+for (i in 1:nrow(identifiant_extreme)){
+  data2 <- data2[!(data2$brain_id == identifiant_extreme$brain_id[i] & data2$cell_id == identifiant_extreme$cell_id[i]&
+                     data2$image_id == identifiant_extreme$image_id[i]),]
+}
+
+# data3 <- data %>% filter(disease_grp %in% c("SAD"))
+# data3 <- data3 %>% filter(modality == "all CATHB")
+# data3 <- data3 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+# group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+# data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+# data2 <- data2 %>% select(-BRAINBANK)
+# data3 <- rbind(data2, data3)
+# data3$disease_grp <- relevel(data3$disease_grp, ref = "CTRL")
+# data3$disease_grp <- factor(data3$disease_grp, levels = c("CTRL", "SAD"))
+# mod1 <- lmerTest::lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data3)
+# summary(mod1)
+```
+
+# By centers {.tabset}
+## Size 3 {.tabset}
+### all CATHB
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE, fig.align="center"}
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp, BRAINBANK) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+
+levels(data3$BRAINBANK) <- list("France" = c("P","L", "R", "R/M"), "Belgique" = "A", "Barcelone" = "B", "IOP" = "IOP",
+                                "Cambridge" = "C", "Queen Square" = "Q")
+
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, color = disease_grp))+
+  facet_wrap(~ BRAINBANK)+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(angle = 90),
+    axis.title = element_text(size = 18, face = "italic", hjust = 0.5),
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5))
+p
+```
+
+### LF
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE, fig.align="center"}
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = sum(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp, BRAINBANK) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+
+data3 <- data2 %>% group_by(brain_id) %>% summarize(mean = mean(moyenne, na.rm = TRUE))
+data3 <- merge(data3, group, by.x = "brain_id", by.y = "brain_id")
+
+levels(data3$BRAINBANK) <- list("France" = c("P","L", "R", "R/M"), "Belgique" = "A", "Barcelone" = "B", "IOP" = "IOP",
+                                "Cambridge" = "C", "Queen Square" = "Q")
+
+p <- data3 %>% ggplot(aes(x = disease_grp, y = mean, color = disease_grp))+
+  facet_wrap(~ BRAINBANK)+
+  geom_boxplot()+
+  geom_jitter()+
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(angle = 90),
+    axis.title = element_text(size = 18, face = "italic", hjust = 0.5),
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5))
+p
+```
+
+# Control vs disease{.tabset}
+## Size 3
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size3.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+
+```{r, results = 'asis', echo = FALSE,warning=FALSE, message=FALSE}
+## all CATHB
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod1 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod1)
+# Anova(mod1)
+# performance::icc(mod1)
+# emmeans::emmeans(mod1, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## LF
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = sum(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod2 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod2)
+# Anova(mod2)
+# performance::icc(mod2)
+# emmeans::emmeans(mod2, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## excl CATHB
+data2 <- data %>% filter(modality == "excl CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod3 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod3)
+# Anova(mod3)
+# performance::icc(mod3)
+# emmeans::emmeans(mod3, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## minus LF
+data2 <- data %>% filter(modality == "minus LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod4 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod4)
+# Anova(mod4)
+# performance::icc(mod4)
+# emmeans::emmeans(mod4, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## Nb_poncta_area_um2_weighted
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% select(brain_id, image_id, cell_id, nb_poncta_area_um2_weighted)
+data2 <- unique(data2)
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod5 <- lmer(nb_poncta_area_um2_weighted ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod5)
+# Anova(mod5)
+# performance::icc(mod5)
+# emmeans::emmeans(mod5, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## Représentation graphique
+texreg::knitreg(list(mod1, mod2, mod3, mod4, mod5),
+                custom.model.names = c("Model all CATHB", "Model LF", "Model excl CATHB", "Model minus LF", "Model nb_poncta"),
+                caption            = "CTRL vs Disease for each modality",
+                caption.above      = TRUE,
+                single.row         = TRUE,
+                bold = TRUE,
+                label = "wow")
+```
+
+
+
+## Size 4
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size4.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+
+```{r, results = 'asis', echo = FALSE,warning=FALSE, message=FALSE}
+## all CATHB
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod1 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod1)
+# Anova(mod1)
+# performance::icc(mod1)
+# emmeans::emmeans(mod1, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## LF
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = sum(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod2 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod2)
+# Anova(mod2)
+# performance::icc(mod2)
+# emmeans::emmeans(mod2, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## excl CATHB
+data2 <- data %>% filter(modality == "excl CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod3 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod3)
+# Anova(mod3)
+# performance::icc(mod3)
+# emmeans::emmeans(mod3, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## minus LF
+data2 <- data %>% filter(modality == "minus LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod4 <- lmer(moyenne ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod4)
+# Anova(mod4)
+# performance::icc(mod4)
+# emmeans::emmeans(mod4, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## Nb_poncta_area_um2_weighted
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% select(brain_id, image_id, cell_id, nb_poncta_area_um2_weighted)
+data2 <- unique(data2)
+group <- data %>% group_by(brain_id, disease_grp) %>% summarize()
+data2 <- merge(data2, group, by.x = "brain_id", by.y = "brain_id")
+data2$disease_grp <- relevel(data2$disease_grp, ref = "CTRL")
+mod5 <- lmer(nb_poncta_area_um2_weighted ~ disease_grp  + (1 | brain_id), data = data2)
+# ggResidpanel::resid_panel(mod5)
+# Anova(mod5)
+# performance::icc(mod5)
+# emmeans::emmeans(mod5, trt.vs.ctrl ~ disease_grp)$contrasts
+
+## Représentation graphique
+texreg::knitreg(list(mod1, mod2, mod3, mod4, mod5),
+                custom.model.names = c("Model all CATHB", "Model LF", "Model excl CATHB", "Model minus LF", "Model nb_poncta"),
+                caption            = "CTRL vs Disease for each modality",
+                caption.above      = TRUE,
+                single.row         = TRUE,
+                bold = TRUE,
+                label = "wow")
+```
+
+
+
+
+# Supplementary {.tabset}
+## Size 3 {.tabset}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size3.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+round_df <- function(x, digits) {
+    # round all numeric variables
+    # x: data frame 
+    # digits: number of digits to round
+    numeric_columns <- sapply(x, mode) == 'numeric'
+    x[numeric_columns] <-  round(x[numeric_columns], digits)
+    x
+}
+smmry <- function(x) c(summary(x), sd = sd(x,  na.rm = TRUE))
+
+```
+
+
+### All CATHB 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+a <- round_df(a, 3)
+
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### LF 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = sum(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+
+a <- round_df(a, 3)
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### minus LF 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "minus LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+
+
+a <- round_df(a, 3)
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### excl CATHB 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "excl CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+
+
+a <- round_df(a, 3)
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+## Size 4 {.tabset}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, results = FALSE}
+data <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/icy_size4.xlsx", sheet = 1)
+demo <- openxlsx::read.xlsx("/home/baptiste.criniere/Documents/PB_AD_KA/Data/Demographics_11-2021_Amal_modified.xlsx", sheet = 3, startRow = 2)
+demo <- demo %>% select(EXCEL, BRAINBANK, GENDER, AGE)
+demo <- demo %>% rename(ID = EXCEL)
+data <- merge(data, demo, by.x = "brain_id", by.y = "ID")
+data <- data %>%  mutate_at(vars(GENDER, BRAINBANK, brain_id, disease_grp, modality), factor)
+centre <- c("A", "B", "C", "IOP", "L", "P", "Q", "R", "R/M")
+levels(data$BRAINBANK) <- centre
+```
+```{r echo = FALSE, message=FALSE,  warning=FALSE}
+round_df <- function(x, digits) {
+    # round all numeric variables
+    # x: data frame 
+    # digits: number of digits to round
+    numeric_columns <- sapply(x, mode) == 'numeric'
+    x[numeric_columns] <-  round(x[numeric_columns], digits)
+    x
+}
+smmry <- function(x) c(summary(x), sd = sd(x,  na.rm = TRUE))
+
+```
+
+
+### All CATHB 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "all CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+a <- round_df(a, 3)
+
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### LF 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = sum(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+
+a <- round_df(a, 3)
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### minus LF 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "minus LF")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+
+
+a <- round_df(a, 3)
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+### excl CATHB 
+```{r echo = FALSE, message=FALSE,  warning=FALSE, results = "asis"}
+data2 <- data %>% filter(modality == "excl CATHB")
+data2 <- data2 %>% group_by(brain_id, image_id, cell_id) %>% summarize(moyenne = mean(area_um2, na.rm = TRUE))
+a <- as.data.frame(do.call(rbind,tapply(data2$moyenne, data2$brain_id, smmry)))
+a <- a[,-7]
+
+
+a <- round_df(a, 3)
+a %>% knitr::kable() %>%  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
