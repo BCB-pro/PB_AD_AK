@@ -211,7 +211,8 @@ head(data, n = 10) %>%
 
 ## Contour
 
-### Representation by group
+#### Representation by group
+
 Here is an interactive figure where each point corresponds to the averaged area for a cell from the same subject
 ```{r}
 fig <- data %>% 
@@ -228,7 +229,8 @@ fig <- data %>%
 ggplotly(fig)
 ```
 
-### Represntation by group and center
+#### Represntation by group and center
+
 As observed in this figure, each center contains only one pathology. Therefore, disregarding the centers in our analysis could introduce bias. If we measure the effect of the disease on the area, we might actually be observing the effect of the center. In the following section, we will conduct an analysis on the controls to see if there is a center effect.
 ```{r}
 data %>% 
@@ -249,7 +251,7 @@ data %>%
 
 
 ## All CATHB
-### Representation of raw data
+#### Representation of raw data
 ```{r out.width="120%"}
 data %>% 
   dplyr::filter(modality %in% "all CATHB") %>% 
@@ -267,7 +269,7 @@ data %>%
   guides(color = guide_legend(nrow = 1))
 ```
 
-### Representation by group
+#### Representation by group
 Here is an interactive figure where each point corresponds to the averaged area for a cell from the same subject
 ```{r}
 fig <- data %>% 
@@ -284,7 +286,7 @@ fig <- data %>%
 ggplotly(fig)
 ```
 
-### Represntation by group and center
+#### Represntation by group and center
 As observed in this figure, each center contains only one pathology. Therefore, disregarding the centers in our analysis could introduce bias. If we measure the effect of the disease on the area, we might actually be observing the effect of the center. In the following section, we will conduct an analysis on the controls to see if there is a center effect.
 ```{r}
 data %>% 
@@ -304,7 +306,7 @@ data %>%
 ```
 
 ## LF
-### Representation of raw data
+#### Representation of raw data
 ```{r out.width="120%"}
 data %>% 
   dplyr::filter(modality %in% "LF") %>% 
@@ -322,7 +324,7 @@ data %>%
   guides(color = guide_legend(nrow = 1))
 ```
 
-### Representation by group
+#### Representation by group
 Here is an interactive figure where each point corresponds to the averaged area for a cell from the same subject
 ```{r}
 fig <- data %>% 
@@ -339,7 +341,7 @@ fig <- data %>%
 ggplotly(fig)
 ```
 
-### Represntation by group and center
+#### Represntation by group and center
 As observed in this figure, each center contains only one pathology. Therefore, disregarding the centers in our analysis could introduce bias. If we measure the effect of the disease on the area, we might actually be observing the effect of the center. In the following section, we will conduct an analysis on the controls to see if there is a center effect.
 ```{r}
 data %>% 
@@ -359,7 +361,7 @@ data %>%
 ```
 
 ## excl CATHB
-### Representation of raw data
+#### Representation of raw data
 ```{r out.width="120%"}
 data %>% 
   dplyr::filter(modality %in% "excl CATHB") %>% 
@@ -377,7 +379,7 @@ data %>%
   guides(color = guide_legend(nrow = 1))
 ```
 
-### Representation by group
+#### Representation by group
 Here is an interactive figure where each point corresponds to the averaged area for a cell from the same subject
 ```{r}
 fig <- data %>% 
@@ -394,7 +396,7 @@ fig <- data %>%
 ggplotly(fig)
 ```
 
-### Represntation by group and center
+#### Represntation by group and center
 As observed in this figure, each center contains only one pathology. Therefore, disregarding the centers in our analysis could introduce bias. If we measure the effect of the disease on the area, we might actually be observing the effect of the center. In the following section, we will conduct an analysis on the controls to see if there is a center effect.
 ```{r}
 data %>% 
@@ -419,7 +421,7 @@ data %>%
 
 
 ## minus LF
-### Representation of raw data
+#### Representation of raw data
 ```{r out.width="120%"}
 data %>% 
   dplyr::filter(modality %in% "minus LF") %>% 
@@ -437,7 +439,7 @@ data %>%
   guides(color = guide_legend(nrow = 1))
 ```
 
-### Representation by group
+#### Representation by group
 Here is an interactive figure where each point corresponds to the averaged area for a cell from the same subject
 ```{r}
 fig <- data %>% 
@@ -454,7 +456,7 @@ fig <- data %>%
 ggplotly(fig)
 ```
 
-### Represntation by group and center
+#### Represntation by group and center
 As observed in this figure, each center contains only one pathology. Therefore, disregarding the centers in our analysis could introduce bias. If we measure the effect of the disease on the area, we might actually be observing the effect of the center. In the following section, we will conduct an analysis on the controls to see if there is a center effect.
 ```{r}
 data %>% 
@@ -482,7 +484,7 @@ data %>%
 # Modelling {.tabset .tabset-dropdown}
 
 ## Contour
-### Center effect on the controls
+#### Center effect on the controls
 No center effect is observed on the controls, and we assume that this conclusion may extend to the other groups. Therefore, we proceed with the rest of the analysis without considering a center effect
 ```{r}
 data2 <- data %>% 
@@ -492,7 +494,7 @@ model <- lmerTest::lmer(area ~ BRAINBANK + (1|brain_id), data = data2)
 Anova(model)
 ```
 
-### Modelling
+#### Modelling
 ```{r}
 data2 <- data %>% 
   dplyr::filter(modality %in% "contour")
@@ -518,7 +520,7 @@ emm1 %>%
 
 
 ## All CATHB
-### Center effect on the controls
+#### Center effect on the controls
 No center effect is observed on the controls, and we assume that this conclusion may extend to the other groups. Therefore, we proceed with the rest of the analysis without considering a center effect
 ```{r}
 data2 <- data %>% 
@@ -528,7 +530,7 @@ model <- lmerTest::lmer(area ~ BRAINBANK + (1|brain_id) + (1|cell_id), data = da
 Anova(model)
 ```
 
-### Modelling
+#### Modelling
 ```{r}
 data2 <- data %>% 
   dplyr::filter(modality %in% "all CATHB")
@@ -554,7 +556,7 @@ emm1 %>%
 ```
 
 ## LF
-### Center effect on the controls
+#### Center effect on the controls
 No center effect is observed on the controls, and we assume that this conclusion may extend to the other groups. Therefore, we proceed with the rest of the analysis without considering a center effect
 ```{r}
 data2 <- data %>% 
@@ -564,7 +566,7 @@ model <- lmerTest::lmer(area ~ BRAINBANK + (1|brain_id) + (1|cell_id), data = da
 Anova(model)
 ```
 
-### Modelling
+#### Modelling
 ```{r}
 data2 <- data %>% 
   dplyr::filter(modality %in% "LF")
@@ -590,7 +592,7 @@ emm1 %>%
 ```
 
 ## excl CATHB
-### Center effect on the controls
+#### Center effect on the controls
 No center effect is observed on the controls, and we assume that this conclusion may extend to the other groups. Therefore, we proceed with the rest of the analysis without considering a center effect
 ```{r}
 data2 <- data %>% 
@@ -600,7 +602,7 @@ model <- lmerTest::lmer(area ~ BRAINBANK + (1|brain_id) + (1|cell_id), data = da
 Anova(model)
 ```
 
-### Modelling
+#### Modelling
 ```{r}
 data2 <- data %>% 
   dplyr::filter(modality %in% "excl CATHB")
@@ -628,7 +630,7 @@ emm1 %>%
 
 
 ## minus LF
-### Center effect on the controls
+#### Center effect on the controls
 No center effect is observed on the controls, and we assume that this conclusion may extend to the other groups. Therefore, we proceed with the rest of the analysis without considering a center effect
 ```{r}
 data2 <- data %>% 
@@ -638,7 +640,7 @@ model <- lmerTest::lmer(area ~ BRAINBANK + (1|brain_id) + (1|cell_id), data = da
 Anova(model)
 ```
 
-### Modelling
+#### Modelling
 ```{r}
 data2 <- data %>% 
   dplyr::filter(modality %in% "minus LF")
