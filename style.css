@@ -1,0 +1,13 @@
+.container {
+  position: relative;
+}
+
+.title-logo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-logo img {
+  max-height: 100px; /* Ajustez la hauteur maximale de votre logo */
+}
